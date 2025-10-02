@@ -20,7 +20,7 @@ def main(config):
     torch.manual_seed(config.seed)
     
     run_name = f"vmae_pretrain_ep{config.epochs}_bs{config.batch_size}_lr{config.lr}"
-    wandb.init(project="era5-videomae-pretraining", config=config, name=run_name)
+    wandb.init(project="era5-videomae-pretraining", config=config, name=run_name, entity="adam_lalani-brown-university")
     
     print(f"Using device: {DEVICE}")
 
