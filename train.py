@@ -51,6 +51,10 @@ def train_one_epoch(model, dataloader, optimizer, device, epoch, scheduler=None,
         outputs = model(pixel_values=batch, bool_masked_pos=bool_masked_pos)
         loss = outputs.loss
         
+        # DataParallel returns a vector of losses (one per GPU), so take mean
+        if loss.dim() > 0:
+            loss = loss.mean()
+        
         loss.backward()
         optimizer.step()
         
