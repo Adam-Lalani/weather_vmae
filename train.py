@@ -28,7 +28,8 @@ def train_one_epoch(model, dataloader, optimizer, device, epoch, scheduler=None,
         batch_size = batch.shape[0]
         
         # Get the model config to determine number of patches
-        config = model.config
+        # Handle DataParallel wrapper
+        config = model.module.config if hasattr(model, 'module') else model.config
         num_patches = (config.image_size // config.patch_size) ** 2 * config.num_frames
         
         # Generate random mask for each sample in the batch
