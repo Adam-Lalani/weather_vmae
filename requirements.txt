@@ -1,0 +1,24 @@
+# Core ML/DL Libraries
+torch>=2.0.0
+numpy>=1.24.0,<2.0.0
+
+# Data Processing
+xarray>=2024.6.0
+zarr>=2.16.0
+fsspec>=2023.6.0
+gcsfs>=2023.6.0
+dask[complete]>=2023.6.0
+netcdf4>=1.6.0
+
+# Visualization
+matplotlib>=3.7.0
+cartopy>=0.22.0
+shapely>=2.0.0
+
+# Utilities
+tqdm>=4.65.0
+pandas>=2.0.0
+
+# Optional but recommended
+scipy>=1.10.0
+
