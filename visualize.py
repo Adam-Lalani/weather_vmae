@@ -31,9 +31,23 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         # Handle DataParallel wrapper
         model_to_use = model.module if hasattr(model, 'module') else model
         
+        # Generate a random mask for visualization (same as training)
+        config = model_to_use.config
+        tubelet_size = getattr(config, 'tubelet_size', 2)
+        num_frames_after_tubelet = config.num_frames // tubelet_size
+        num_spatial_patches = (config.image_size // config.patch_size) ** 2
+        num_patches = num_spatial_patches * num_frames_after_tubelet
+        
+        # Create a mask with 75% masking ratio
+        mask_ratio = 0.75
+        num_masked = int(mask_ratio * num_patches)
+        bool_masked_pos = torch.zeros((1, num_patches), dtype=torch.bool, device=device)
+        mask_indices = torch.randperm(num_patches, device=device)[:num_masked]
+        bool_masked_pos[0, mask_indices] = True
+        
         # 1. Get model outputs (loss, logits, mask)
-        outputs = model(pixel_values=clip_batch)
-        mask = outputs.mask.detach()  # Shape: (B, NumPatches)
+        outputs = model(pixel_values=clip_batch, bool_masked_pos=bool_masked_pos)
+        mask = bool_masked_pos  # Use our generated mask
         
         # Patchify the original clip to work with the mask
         original_patches = model_to_use.patchify(clip_batch) # (B, NumPatches, PatchDim)
