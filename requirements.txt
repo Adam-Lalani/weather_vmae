@@ -1,6 +1,8 @@
 # Core ML/DL Libraries
 torch>=2.0.0
 numpy>=1.24.0,<2.0.0
+transformers>=4.30.0
+protobuf>=3.9.2,<3.20
 
 # Data Processing
 xarray>=2024.6.0
@@ -14,10 +16,13 @@ netcdf4>=1.6.0
 matplotlib>=3.7.0
 cartopy>=0.22.0
 shapely>=2.0.0
+imageio>=2.31.0
+imageio-ffmpeg>=0.4.8
 
 # Utilities
 tqdm>=4.65.0
 pandas>=2.0.0
+wandb>=0.15.0
 
 # Optional but recommended
 scipy>=1.10.0

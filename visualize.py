@@ -28,23 +28,26 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         # Add a batch dimension and send to device
         clip_batch = clip.unsqueeze(0).to(device)
 
+        # Handle DataParallel wrapper
+        model_to_use = model.module if hasattr(model, 'module') else model
+        
         # 1. Get model outputs (loss, logits, mask)
         outputs = model(pixel_values=clip_batch)
         mask = outputs.mask.detach()  # Shape: (B, NumPatches)
         
         # Patchify the original clip to work with the mask
-        original_patches = model.patchify(clip_batch) # (B, NumPatches, PatchDim)
+        original_patches = model_to_use.patchify(clip_batch) # (B, NumPatches, PatchDim)
 
         # 2. Create the masked input for visualization
         mask_expanded = mask.unsqueeze(-1)
         masked_patches = original_patches * (1 - mask_expanded) # Zero out masked patches
-        masked_clip_tensor = model.unpatchify(masked_patches)
+        masked_clip_tensor = model_to_use.unpatchify(masked_patches)
 
         # 3. Create the hybrid reconstruction (most accurate view)
         # Use original visible patches + reconstructed masked patches
         pred_patches = outputs.logits.detach()
         hybrid_patches = original_patches * (1 - mask_expanded) + pred_patches * mask_expanded
-        hybrid_reconstruction_tensor = model.unpatchify(hybrid_patches)
+        hybrid_reconstruction_tensor = model_to_use.unpatchify(hybrid_patches)
 
         # 4. Denormalize clips for visualization
         original_vis = denormalize_clip(clip_batch.cpu().squeeze(0), mean, std)
