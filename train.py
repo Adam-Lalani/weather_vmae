@@ -30,7 +30,12 @@ def train_one_epoch(model, dataloader, optimizer, device, epoch, scheduler=None,
         # Get the model config to determine number of patches
         # Handle DataParallel wrapper
         config = model.module.config if hasattr(model, 'module') else model.config
-        num_patches = (config.image_size // config.patch_size) ** 2 * config.num_frames
+        
+        # VideoMAE uses tubelet embedding: groups frames by tubelet_size (default=2)
+        tubelet_size = getattr(config, 'tubelet_size', 2)
+        num_frames_after_tubelet = config.num_frames // tubelet_size
+        num_spatial_patches = (config.image_size // config.patch_size) ** 2
+        num_patches = num_spatial_patches * num_frames_after_tubelet
         
         # Generate random mask for each sample in the batch
         # True = masked, False = visible
