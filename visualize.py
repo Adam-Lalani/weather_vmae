@@ -48,23 +48,23 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         # 1. Get model outputs (loss, logits, mask)
         outputs = model(pixel_values=clip_batch, bool_masked_pos=bool_masked_pos)
         
-        # 2. Access the decoder's unpatchify function
+        # 2. Access the decoder for patchify/unpatchify
         decoder = model_to_use.decoder
         
         # Patchify the original using the decoder's patchify method
-        original_patches = decoder.decoder.patchify(clip_batch)  # (B, NumPatches, PatchDim)
+        original_patches = decoder.patchify(clip_batch)  # (B, NumPatches, PatchDim)
         
         # 3. Create masked and reconstruction visualizations
         mask_expanded = bool_masked_pos.unsqueeze(-1)  # (B, NumPatches, 1)
         
         # Masked input: zero out masked patches
         masked_patches = original_patches * (1 - mask_expanded.float())
-        masked_clip_tensor = decoder.decoder.unpatchify(masked_patches)
+        masked_clip_tensor = decoder.unpatchify(masked_patches)
         
         # Hybrid reconstruction: combine visible original + reconstructed masked
         pred_patches = outputs.logits.detach()
         hybrid_patches = original_patches * (1 - mask_expanded.float()) + pred_patches * mask_expanded.float()
-        hybrid_reconstruction_tensor = decoder.decoder.unpatchify(hybrid_patches)
+        hybrid_reconstruction_tensor = decoder.unpatchify(hybrid_patches)
         
         # 4. Denormalize clips for visualization
         original_vis = denormalize_clip(clip_batch.cpu().squeeze(0), mean, std)
