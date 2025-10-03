@@ -115,4 +115,4 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
         wandb.log({"Reconstruction GIF": wandb.Video(path, fps=fps, format="gif")})
 
     model.train()
-    return path
+  
