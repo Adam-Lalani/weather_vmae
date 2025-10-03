@@ -91,13 +91,16 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
                 # Get the predicted patch values for this masked patch
                 pred_patch = pred_patches[0, masked_patch_idx]  # (patch_dim,)
                 
-                # Reshape to spatial dimensions (simplified - just use mean for visualization)
-                pred_value = pred_patch.mean().item()
+                # The predictions are in normalized space, so we need to denormalize them
+                # For simplicity, we'll denormalize the mean of the patch
+                pred_value_normalized = pred_patch.mean().item()
                 
-                # Clamp to reasonable temperature range (200K to 350K)
-                pred_value = max(200.0, min(350.0, pred_value))
+                # Denormalize using the same mean/std as the original data
+                # pred_value = pred_value_normalized * std + mean
+                # For the first channel (temperature), use the first element of mean/std
+                pred_value = pred_value_normalized * std[0] + mean[0]
                 
-                # Fill the masked region with the predicted value
+                # Fill the masked region with the denormalized predicted value
                 hybrid_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = pred_value
                 
                 # Move to next masked patch
