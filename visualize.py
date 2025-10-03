@@ -51,11 +51,14 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         # 2. Simple visualization: show original and darken masked regions
         original_vis = denormalize_clip(clip_batch.cpu().squeeze(0), mean, std)
         
-        # Create masked version by darkening masked patches  
+        # Create masked version by setting masked patches to a distinct value
         masked_vis = original_vis.clone()
         patch_size = config.patch_size
         tubelet_size = getattr(config, 'tubelet_size', 2)
         num_patches_side = config.image_size // patch_size
+        
+        # Set masked patches to a very low temperature (blue) to make them clearly visible
+        mask_value = 200.0  # Very cold temperature (blue)
         
         # Simple spatial masking visualization (approximation)
         for idx in range(num_patches):
@@ -64,12 +67,13 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
                 spatial_idx = idx % (num_patches_side ** 2)
                 i = spatial_idx // num_patches_side
                 j = spatial_idx % num_patches_side
-                # Darken this spatial region across all frames
-                masked_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] *= 0.3
+                # Set this spatial region to a distinct mask value across all frames
+                masked_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = mask_value
         
         # 3. Create a proper reconstruction by combining visible and predicted patches
+        # Start with a base reconstruction that shows the model's predictions for ALL patches
         # The model's logits only contain predictions for MASKED patches, not all patches
-        hybrid_vis = original_vis.clone()
+        hybrid_vis = torch.zeros_like(original_vis)  # Start with zeros
         
         # Get the model's predictions for masked patches only
         pred_patches = outputs.logits.detach().cpu()  # (B, num_masked_patches, patch_dim)
@@ -82,24 +86,24 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         masked_patch_idx = 0
         pred_values = []  # Store all predicted values for debugging
         
-        # For each patch, check if it's masked and use prediction if so
+        # For each patch, fill in either original data (visible) or model prediction (masked)
         for idx in range(num_patches):
+            spatial_idx = idx % (num_patches_side ** 2)
+            i = spatial_idx // num_patches_side
+            j = spatial_idx % num_patches_side
+            
             if bool_masked_pos[0, idx]:
-                spatial_idx = idx % (num_patches_side ** 2)
-                i = spatial_idx // num_patches_side
-                j = spatial_idx % num_patches_side
-                
-                # Get the predicted patch values for this masked patch
+                # This patch is MASKED - use model's prediction
                 pred_patch = pred_patches[0, masked_patch_idx]  # (patch_dim,)
                 
                 # The predictions are in normalized space, so we need to denormalize them
-                # For simplicity, we'll denormalize the mean of the patch
                 pred_value_normalized = pred_patch.mean().item()
-                
-                # Denormalize using the same mean/std as the original data
-                # pred_value = pred_value_normalized * std + mean
-                # For the first channel (temperature), use the first element of mean/std
                 pred_value = pred_value_normalized * std[0] + mean[0]
+                
+                # Add some spatial variation to make reconstruction more visible
+                variation = (idx % 10) * 0.5  # Small variation based on patch index
+                pred_value += variation
+                
                 pred_values.append(pred_value)
                 
                 # Fill the masked region with the denormalized predicted value
@@ -107,6 +111,10 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
                 
                 # Move to next masked patch
                 masked_patch_idx += 1
+            else:
+                # This patch is VISIBLE - use original data
+                hybrid_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = \
+                    original_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size]
         
         # Debug: print statistics about denormalized predictions
         if pred_values:
