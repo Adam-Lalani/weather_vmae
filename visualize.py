@@ -51,25 +51,46 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         # 2. Simple visualization: show original and darken masked regions
         original_vis = denormalize_clip(clip_batch.cpu().squeeze(0), mean, std)
         
-        # Create masked version by darkening masked patches  
-        masked_vis = original_vis.clone()
-        patch_size = config.patch_size
-        tubelet_size = getattr(config, 'tubelet_size', 2)
-        num_patches_side = config.image_size // patch_size
-        
-        # Simple spatial masking visualization (approximation)
-        for idx in range(num_patches):
-            if bool_masked_pos[0, idx]:
-                # Map patch index to spatial location (simplified)
-                spatial_idx = idx % (num_patches_side ** 2)
-                i = spatial_idx // num_patches_side
-                j = spatial_idx % num_patches_side
-                # Darken this spatial region across all frames
-                masked_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] *= 0.3
-        
-        # For reconstruction, just show original (model reconstructs internally during training)
-        # Full reconstruction visualization would require complex unpatchify logic
-        hybrid_vis = original_vis.clone()
++        # Create masked version by darkening masked patches  
++        masked_vis = original_vis.clone()
++        patch_size = config.patch_size
++        tubelet_size = getattr(config, 'tubelet_size', 2)
++        num_patches_side = config.image_size // patch_size
++        
++        # Simple spatial masking visualization (approximation)
++        for idx in range(num_patches):
++            if bool_masked_pos[0, idx]:
++                # Map patch index to spatial location (simplified)
++                spatial_idx = idx % (num_patches_side ** 2)
++                i = spatial_idx // num_patches_side
++                j = spatial_idx % num_patches_side
++                # Darken this spatial region across all frames
++                masked_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] *= 0.3
++        
++        # 3. Create a proper reconstruction by combining visible and predicted patches
++        # We'll use the model's logits to fill in the masked regions
++        # This is a simplified approach that approximates the reconstruction
++        hybrid_vis = original_vis.clone()
++        
++        # Get the model's predictions for masked patches
++        pred_patches = outputs.logits.detach().cpu()  # (B, num_patches, patch_dim)
++        
++        # For each masked patch, we'll approximate the reconstruction
++        # by using the mean of the predicted patch values
++        for idx in range(num_patches):
++            if bool_masked_pos[0, idx]:
++                spatial_idx = idx % (num_patches_side ** 2)
++                i = spatial_idx // num_patches_side
++                j = spatial_idx % num_patches_side
++                
++                # Get the predicted patch values
++                pred_patch = pred_patches[0, idx]  # (patch_dim,)
++                
++                # Reshape to spatial dimensions (simplified - just use mean for visualization)
++                pred_value = pred_patch.mean().item()
++                
++                # Fill the masked region with the predicted value
++                hybrid_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = pred_value
 
         # --- GIF Generation ---
         gif_frames = []
