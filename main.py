@@ -107,11 +107,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train a VideoMAE model on ERA5 data.")
 
     # Training config
-    parser.add_argument('--epochs', type=int, default=2, help='Total training epochs.')
+    parser.add_argument('--epochs', type=int, default=200, help='Total training epochs.')
     parser.add_argument('--batch_size', type=int, default=4, help='Batch size per GPU.')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of dataloader workers.')
     parser.add_argument('--lr', type=float, default=1.5e-4, help='Peak learning rate.')
-    parser.add_argument('--warmup_epochs', type=int, default=1, help='Epochs for learning rate warmup.')
+    parser.add_argument('--warmup_epochs', type=int, default=20, help='Epochs for learning rate warmup.')
     parser.add_argument('--min_lr', type=float, default=1e-6, help='Minimum learning rate for cosine decay.')
     parser.add_argument('--weight_decay', type=float, default=0.05, help='AdamW weight decay.')
     parser.add_argument('--log_interval', type=int, default=10, help='Epoch interval for logging viz and checkpoints.')
