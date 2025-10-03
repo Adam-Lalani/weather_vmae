@@ -68,29 +68,33 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
                 masked_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] *= 0.3
         
         # 3. Create a proper reconstruction by combining visible and predicted patches
-        # We'll use the model's logits to fill in the masked regions
-        # This is a simplified approach that approximates the reconstruction
+        # The model's logits only contain predictions for MASKED patches, not all patches
         hybrid_vis = original_vis.clone()
         
-        # Get the model's predictions for masked patches
-        pred_patches = outputs.logits.detach().cpu()  # (B, num_patches, patch_dim)
+        # Get the model's predictions for masked patches only
+        pred_patches = outputs.logits.detach().cpu()  # (B, num_masked_patches, patch_dim)
         
-        # For each masked patch, we'll approximate the reconstruction
-        # by using the mean of the predicted patch values
+        # Track which masked patch we're currently processing
+        masked_patch_idx = 0
+        
+        # For each patch, check if it's masked and use prediction if so
         for idx in range(num_patches):
             if bool_masked_pos[0, idx]:
                 spatial_idx = idx % (num_patches_side ** 2)
                 i = spatial_idx // num_patches_side
                 j = spatial_idx % num_patches_side
                 
-                # Get the predicted patch values
-                pred_patch = pred_patches[0, idx]  # (patch_dim,)
+                # Get the predicted patch values for this masked patch
+                pred_patch = pred_patches[0, masked_patch_idx]  # (patch_dim,)
                 
                 # Reshape to spatial dimensions (simplified - just use mean for visualization)
                 pred_value = pred_patch.mean().item()
                 
                 # Fill the masked region with the predicted value
                 hybrid_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = pred_value
+                
+                # Move to next masked patch
+                masked_patch_idx += 1
 
         # --- GIF Generation ---
         gif_frames = []
