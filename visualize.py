@@ -80,6 +80,7 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         
         # Track which masked patch we're currently processing
         masked_patch_idx = 0
+        pred_values = []  # Store all predicted values for debugging
         
         # For each patch, check if it's masked and use prediction if so
         for idx in range(num_patches):
@@ -99,12 +100,19 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
                 # pred_value = pred_value_normalized * std + mean
                 # For the first channel (temperature), use the first element of mean/std
                 pred_value = pred_value_normalized * std[0] + mean[0]
+                pred_values.append(pred_value)
                 
                 # Fill the masked region with the denormalized predicted value
                 hybrid_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = pred_value
                 
                 # Move to next masked patch
                 masked_patch_idx += 1
+        
+        # Debug: print statistics about denormalized predictions
+        if pred_values:
+            pred_values = torch.tensor(pred_values)
+            print(f"Denormalized prediction stats - min: {pred_values.min():.3f}, max: {pred_values.max():.3f}, mean: {pred_values.mean():.3f}")
+            print(f"Number of unique values: {len(torch.unique(pred_values))}")
         
         print(f"Reconstruction stats - min: {hybrid_vis.min():.3f}, max: {hybrid_vis.max():.3f}, mean: {hybrid_vis.mean():.3f}")
 
