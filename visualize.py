@@ -74,6 +74,10 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
         # Get the model's predictions for masked patches only
         pred_patches = outputs.logits.detach().cpu()  # (B, num_masked_patches, patch_dim)
         
+        # Debug: print some statistics about predictions
+        print(f"Prediction stats - min: {pred_patches.min():.3f}, max: {pred_patches.max():.3f}, mean: {pred_patches.mean():.3f}")
+        print(f"Original stats - min: {original_vis.min():.3f}, max: {original_vis.max():.3f}, mean: {original_vis.mean():.3f}")
+        
         # Track which masked patch we're currently processing
         masked_patch_idx = 0
         
@@ -90,11 +94,16 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch):
                 # Reshape to spatial dimensions (simplified - just use mean for visualization)
                 pred_value = pred_patch.mean().item()
                 
+                # Clamp to reasonable temperature range (200K to 350K)
+                pred_value = max(200.0, min(350.0, pred_value))
+                
                 # Fill the masked region with the predicted value
                 hybrid_vis[:, :, i*patch_size:(i+1)*patch_size, j*patch_size:(j+1)*patch_size] = pred_value
                 
                 # Move to next masked patch
                 masked_patch_idx += 1
+        
+        print(f"Reconstruction stats - min: {hybrid_vis.min():.3f}, max: {hybrid_vis.max():.3f}, mean: {hybrid_vis.mean():.3f}")
 
         # --- GIF Generation ---
         gif_frames = []
