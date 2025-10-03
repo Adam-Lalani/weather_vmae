@@ -110,9 +110,26 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
             buf.close()
             plt.close(fig)
 
-        path = f"reconstruction_epoch_{epoch}.gif"
-        imageio.mimsave(path, frames, fps=fps)
-        wandb.log({"Reconstruction GIF": wandb.Video(path, fps=fps, format="gif")})
+        # Downscale frames and save as MP4 (smaller than GIF)
+        scale = 0.5  # downscale factor
+        max_frames = min(T, 8)
+        ds_frames = []
+        for idx, fr in enumerate(frames[:max_frames]):
+            # simple stride-based downscale to avoid extra deps
+            ds = fr[:: int(1/scale) if scale < 1 else 1, :: int(1/scale) if scale < 1 else 1]
+            ds_frames.append(ds)
+
+        mp4_path = f"reconstruction_epoch_{epoch}.mp4"
+        try:
+            with imageio.get_writer(mp4_path, fps=max(1, fps), codec="libx264", quality=7) as w:
+                for fr in ds_frames:
+                    w.append_data(fr)
+            wandb.log({"Reconstruction Video": wandb.Video(mp4_path, fps=max(1, fps))}, step=epoch)
+        except Exception:
+            # fallback: still save GIF if mp4 writing fails
+            gif_path = f"reconstruction_epoch_{epoch}.gif"
+            imageio.mimsave(gif_path, ds_frames, fps=max(1, fps))
+            wandb.log({"Reconstruction GIF": wandb.Video(gif_path, fps=max(1, fps), format="gif")}, step=epoch)
 
     model.train()
   
