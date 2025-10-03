@@ -21,7 +21,9 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
     model.eval()
     with torch.no_grad():
         T, C, H, W = clip.shape
-        cfg = getattr(model, "config")
+        # Handle DataParallel wrapper
+        model_to_use = model.module if hasattr(model, 'module') else model
+        cfg = getattr(model_to_use, "config")
         ps = int(getattr(cfg, "patch_size", 16))
         tube = int(getattr(cfg, "tubelet_size", 2))
 
