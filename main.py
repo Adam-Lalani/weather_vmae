@@ -107,7 +107,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train a VideoMAE model on ERA5 data.")
 
     # Training config
-    parser.add_argument('--epochs', type=int, default=200, help='Total training epochs.')
+    parser.add_argument('--epochs', type=int, default=600, help='Total training epochs.')
     parser.add_argument('--batch_size', type=int, default=4, help='Batch size per GPU.')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of dataloader workers.')
     parser.add_argument('--lr', type=float, default=1.5e-4, help='Peak learning rate.')
