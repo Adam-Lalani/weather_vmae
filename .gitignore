@@ -19,46 +19,76 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 venv/
-ENV/
 env/
-.venv
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Conda
+.conda/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# PyCharm
-.idea/
-
-# VS Code
-.vscode/
-
-# Model checkpoints
+# Model checkpoints and outputs
 *.pth
 *.pt
 *.ckpt
 checkpoints/
+models/
+outputs/
+logs/
+wandb/
+runs/
+
+# SLURM outputs
+slurm-*.out
+slurm-*.err
+*.out
+*.err
+
+# Data files (if any local data)
+data/
+datasets/
+*.zarr
+*.nc
+*.h5
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
 
 # Weights & Biases
 wandb/
 
-# Data
-*.zarr/
-*.nc
-*.grib
-
-# Visualization outputs
-*.gif
-*.mp4
-*.png
-*.jpg
-
-# MacOS
-.DS_Store
-
-# Logs
-*.log
-logs/
-
+# Large files that shouldn't be in git
+*.zip
+*.tar.gz
+*.rar

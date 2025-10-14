@@ -92,7 +92,7 @@ def get_dataloaders(
     # full year of data
     data_subset = ds[VARIABLES].sel(time=slice(date_start, date_end))
 
-    # 2. Normalize longitudes to [-180, 180] and filter to Canada's bounding box
+    # Normalize longitudes to [-180, 180] and filter to Canada's bounding box
     data_subset = data_subset.assign_coords(
         longitude=((data_subset.longitude + 180) % 360) - 180
     ).sortby(['longitude', 'latitude'])
@@ -100,8 +100,6 @@ def get_dataloaders(
            (data_subset.latitude >= CANADA_BOUNDS[1]) & (data_subset.latitude <= CANADA_BOUNDS[3])
     data_canada = data_subset.where(mask, drop=True)
 
-    # 3. Resize to a square resolution (required for ViT patchifying)
-    # Convert coord bounds to Python scalars for numpy
     lat_min = float(data_canada.latitude.min().values)
     lat_max = float(data_canada.latitude.max().values)
     lon_min = float(data_canada.longitude.min().values)

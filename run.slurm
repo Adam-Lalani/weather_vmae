@@ -27,6 +27,6 @@ echo "Dataset: ERA5 weather data"
 echo "Model: VideoMAE with 75% masking ratio"
 echo "GPUs: 2 (DataParallel)"
 
-/users/allalani/miniconda3/envs/csci1470/bin/python -u main.py
+python -u main.py
 
 echo "Job finished at $(date)"

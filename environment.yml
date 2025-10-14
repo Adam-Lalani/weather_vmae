@@ -1,0 +1,31 @@
+name: weather_mae
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.9
+  - pytorch>=2.0.0
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8
+  - numpy>=1.24.0,<2.0.0
+  - matplotlib>=3.7.0
+  - pandas>=2.0.0
+  - scipy>=1.10.0
+  - tqdm>=4.65.0
+  - pip
+  - pip:
+    - transformers>=4.30.0
+    - protobuf>=3.9.2,<3.20
+    - xarray>=2024.6.0
+    - zarr>=2.16.0
+    - fsspec>=2023.6.0
+    - gcsfs>=2023.6.0
+    - dask[complete]>=2023.6.0
+    - netcdf4>=1.6.0
+    - cartopy>=0.22.0
+    - shapely>=2.0.0
+    - imageio>=2.31.0
+    - imageio-ffmpeg>=0.4.8
+    - wandb>=0.15.0
