@@ -74,8 +74,7 @@ def main(config):
         print(f"\n{'='*30} Epoch {epoch}/{config.epochs} {'='*30}")
         
         avg_loss = train_one_epoch(
-            vjepa2_model, train_loader, optimizer, DEVICE, epoch, scheduler,
-            context_ratio=config.context_ratio
+            vjepa2_model, train_loader, optimizer, DEVICE, epoch, scheduler
         )
         
         wandb.log({
@@ -106,13 +105,13 @@ if __name__ == '__main__':
 
     # Training config
     parser.add_argument('--epochs', type=int, default=400, help='Total training epochs.')
-    parser.add_argument('--batch_size', type=int, default=4, help='Batch size per GPU.')
-    parser.add_argument('--num_workers', type=int, default=4, help='Number of dataloader workers.')
-    parser.add_argument('--lr', type=float, default=1.5e-4, help='Peak learning rate.')
-    parser.add_argument('--warmup_epochs', type=int, default=20, help='Epochs for learning rate warmup.')
+    parser.add_argument('--batch_size', type=int, default=8, help='Batch size per GPU.')
+    parser.add_argument('--num_workers', type=int, default=2, help='Number of dataloader workers.')
+    parser.add_argument('--lr', type=float, default=1e-4, help='Peak learning rate.')
+    parser.add_argument('--warmup_epochs', type=int, default=40, help='Epochs for learning rate warmup.')
     parser.add_argument('--min_lr', type=float, default=1e-6, help='Minimum learning rate for cosine decay.')
-    parser.add_argument('--weight_decay', type=float, default=0.05, help='AdamW weight decay.')
-    parser.add_argument('--log_interval', type=int, default=10, help='Epoch interval for logging viz and checkpoints.')
+    parser.add_argument('--weight_decay', type=float, default=0.01, help='AdamW weight decay.')
+    parser.add_argument('--log_interval', type=int, default=5, help='Epoch interval for logging viz and checkpoints.')
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
     
     # Model config

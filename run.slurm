@@ -5,11 +5,11 @@
 #SBATCH --gres=gpu:2          # Request 2 GPUs for DataParallel training
 #SBATCH -n 1                  # Number of tasks (almost always 1 for single-node jobs)
 #SBATCH -c 8                  # Number of CPUs per task (2x num_workers for data loading)
-#SBATCH --mem=64G             # Request 64GB of memory for large weather datasets
-#SBATCH -t 48:00:00           # Set a time limit of 48 hours (weather MAE training can be long)
-#SBATCH -J weather-mae        # A descriptive name for your job
-#SBATCH -o slurm-%j_mae1.out       # Name of the file to redirect standard output
-#SBATCH -e slurm-%j_mae1.err       # Name of the file to redirect standard error
+#SBATCH --mem=64G             # Request 32GB of memory. Increase if you get memory errors.
+#SBATCH -t 16:00:00           # Set a time limit of 36 hours (HH:MM:SS)
+#SBATCH -J vjepa        # A descriptive name for your job
+#SBATCH -o slurm-%j.out       # Name of the file to redirect standard output
+#SBATCH -e slurm-%j.err       # Name of the file to redirect standard error
 
 # --- Environment Setup ---
 echo "Job started on $(hostname) at $(date)"
@@ -22,11 +22,7 @@ module load cuda
 echo "Navigating to submission directory: $SLURM_SUBMIT_DIR"
 cd $SLURM_SUBMIT_DIR
 
-echo "Starting Weather MAE pre-training..."
-echo "Dataset: ERA5 weather data"
-echo "Model: VideoMAE with 75% masking ratio"
-echo "GPUs: 2 (DataParallel)"
-
-python -u v-jepa_test/main_vjepa2.py
+echo "Starting Python script for vjepa pre-training..."
+/users/allalani/miniconda3/envs/csci1470/bin/python -u v-jepa_test/main_vjepa2.py
 
 echo "Job finished at $(date)"
