@@ -27,6 +27,6 @@ echo "Dataset: ERA5 weather data"
 echo "Model: VideoMAE with 75% masking ratio"
 echo "GPUs: 2 (DataParallel)"
 
-python -u main.py
+python -u v-jepa_test/main_vjepa2.py
 
 echo "Job finished at $(date)"

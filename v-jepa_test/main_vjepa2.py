@@ -5,7 +5,8 @@ import time
 import wandb
 import argparse
 import os
-
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data import get_dataloaders
 from model_vjepa2_simple import create_vjepa2_model
 from train_vjepa2_simple import train_one_epoch
@@ -19,7 +20,7 @@ def main(config):
     torch.manual_seed(config.seed)
     
     run_name = f"vjepa2_pretrain_ep{config.epochs}_bs{config.batch_size}_lr{config.lr}"
-    wandb.init(project="era5-vjepa2-pretraining", config=config, name=run_name)
+    wandb.init(project="era5-vjepa2-pretraining", config=config, name=run_name, entity="adam_lalani-brown-university")
     
     print(f"Using device: {DEVICE}")
 
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train a V-JEPA 2 model on ERA5 data.")
 
     # Training config
-    parser.add_argument('--epochs', type=int, default=600, help='Total training epochs.')
+    parser.add_argument('--epochs', type=int, default=400, help='Total training epochs.')
     parser.add_argument('--batch_size', type=int, default=4, help='Batch size per GPU.')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of dataloader workers.')
     parser.add_argument('--lr', type=float, default=1.5e-4, help='Peak learning rate.')
