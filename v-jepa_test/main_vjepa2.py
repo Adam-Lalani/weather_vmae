@@ -8,8 +8,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data import get_dataloaders
-from model_vjepa2_simple import create_vjepa2_model
-from train_vjepa2_simple import train_one_epoch
+from model_vjepa2 import create_vjepa2_model
+from train_vjepa2 import train_one_epoch
 
 def main(config):
     """
