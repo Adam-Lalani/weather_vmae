@@ -2,7 +2,6 @@
 
 # Simple script to run three VideoMAE experiments in succession
 
-cd /Users/User/Desktop/Aeolus/weather_mae/vmae_3d_naive
 
 echo "Starting 1h resolution experiment..."
 python main.py --temporal_resolution 1h --num_frames 8 --date_start 2021-01-01 --date_end 2021-03-01
