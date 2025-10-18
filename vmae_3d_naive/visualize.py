@@ -6,13 +6,17 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import imageio
 import wandb
+import os
 
-# Channel names for the new data structure
+# Channel names for the new data structure (4 variables × 5 pressure levels)
 CHANNEL_NAMES = [
+    'U-wind 1000hPa', 'U-wind 850hPa', 'U-wind 700hPa', 'U-wind 500hPa', 'U-wind 300hPa',
+    'V-wind 1000hPa', 'V-wind 850hPa', 'V-wind 700hPa', 'V-wind 500hPa', 'V-wind 300hPa',
     'Temp 1000hPa', 'Temp 850hPa', 'Temp 700hPa', 'Temp 500hPa', 'Temp 300hPa',
-    'U-wind 10m', 'V-wind 10m'
+    'SpecHum 1000hPa', 'SpecHum 850hPa', 'SpecHum 700hPa', 'SpecHum 500hPa', 'SpecHum 300hPa'
 ]
-CHANNEL_UNITS = ['K', 'K', 'K', 'K', 'K', 'm/s', 'm/s']
+CHANNEL_UNITS = ['m/s', 'm/s', 'm/s', 'm/s', 'm/s', 'm/s', 'm/s', 'm/s', 'm/s', 'm/s', 
+                 'K', 'K', 'K', 'K', 'K', 'kg/kg', 'kg/kg', 'kg/kg', 'kg/kg', 'kg/kg']
 
 def denorm(clip, mean, std):
     clip = clip.clone()
@@ -24,7 +28,7 @@ def _infer_origin(lat):
     lat = np.asarray(lat)
     return "upper" if lat[0] > lat[-1] else "lower"
 
-def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask_ratio=0.75, channel=0, fps=3):
+def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask_ratio=0.75, channel=0, fps=3, run_name=None):
     model.eval()
     with torch.no_grad():
         T, C, H, W = clip.shape
@@ -130,7 +134,15 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
             ds = fr[:: int(1/scale) if scale < 1 else 1, :: int(1/scale) if scale < 1 else 1]
             ds_frames.append(ds)
 
-        mp4_path = f"reconstruction_epoch_{epoch}.mp4"
+        # Create run-specific folder for outputs (outside the code directory)
+        if run_name:
+            output_dir = f"../outputs/{run_name}"
+            os.makedirs(output_dir, exist_ok=True)
+        else:
+            output_dir = "../outputs"
+            os.makedirs(output_dir, exist_ok=True)
+        
+        mp4_path = os.path.join(output_dir, f"reconstruction_epoch_{epoch}.mp4")
         try:
             with imageio.get_writer(mp4_path, fps=max(1, fps), codec="libx264", quality=7) as w:
                 for fr in ds_frames:
@@ -138,7 +150,7 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
             wandb.log({"Reconstruction Video": wandb.Video(mp4_path, fps=max(1, fps))}, step=epoch)
         except Exception:
             # fallback: still save GIF if mp4 writing fails
-            gif_path = f"reconstruction_epoch_{epoch}.gif"
+            gif_path = os.path.join(output_dir, f"reconstruction_epoch_{epoch}.gif")
             imageio.mimsave(gif_path, ds_frames, fps=max(1, fps))
             wandb.log({"Reconstruction GIF": wandb.Video(gif_path, fps=max(1, fps), format="gif")}, step=epoch)
 

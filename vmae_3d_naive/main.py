@@ -90,8 +90,10 @@ def main(config):
         if epoch % config.log_interval == 0:
             print(f"--- Epoch {epoch}: Saving checkpoint ---")
             
-            # Save checkpoint with descriptive filename
-            checkpoint_path = f"videomae_large_{temporal_res}_{start_date}_{end_date}_epoch_{epoch}.pth"
+            # Save checkpoint with descriptive filename in organized folder
+            checkpoint_dir = f"../outputs/{run_name}"
+            os.makedirs(checkpoint_dir, exist_ok=True)
+            checkpoint_path = os.path.join(checkpoint_dir, f"videomae_large_{temporal_res}_{start_date}_{end_date}_epoch_{epoch}.pth")
             model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
             torch.save(model_to_save.state_dict(), checkpoint_path)
             wandb.save(checkpoint_path)
@@ -100,12 +102,14 @@ def main(config):
             print(f"--- Epoch {epoch}: Logging reconstruction GIF ---")
             log_reconstruction_gif(
                 videomae_model, vis_clip, train_mean.tolist(), train_std.tolist(), 
-                lat, lon, DEVICE, epoch
+                lat, lon, DEVICE, epoch, run_name=run_name
             )
             print(f"Reconstruction GIF logged for epoch {epoch}")
 
-    # Save final model
-    final_model_path = f"videomae_large_{temporal_res}_{start_date}_{end_date}_final.pth"
+    # Save final model in organized folder
+    final_model_dir = f"../outputs/{run_name}"
+    os.makedirs(final_model_dir, exist_ok=True)
+    final_model_path = os.path.join(final_model_dir, f"videomae_large_{temporal_res}_{start_date}_{end_date}_final.pth")
     model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
     torch.save(model_to_save.state_dict(), final_model_path)
     wandb.save(final_model_path)

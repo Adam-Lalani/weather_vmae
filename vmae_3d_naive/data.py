@@ -44,8 +44,8 @@ class ERA5ClipDataset(Dataset):
         self.std = std.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
 
     def __len__(self):
-       
-        return len(self.data.time) - self.clip_length + 1
+        length = len(self.data.time) - self.clip_length + 1
+        return max(0, length)  # Ensure non-negative length
 
     def __getitem__(self, idx):
         time_slice = slice(idx, idx + self.clip_length)
