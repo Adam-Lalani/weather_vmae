@@ -19,7 +19,11 @@ def main(config):
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     torch.manual_seed(config.seed)
     
-    run_name = f"vmae_pretrain_ep{config.epochs}_bs{config.batch_size}_lr{config.lr}"
+    # Create descriptive run name with temporal resolution and time range
+    temporal_res = config.temporal_resolution
+    start_date = config.date_start.replace('-', '')
+    end_date = config.date_end.replace('-', '')
+    run_name = f"vmae_large_{temporal_res}_{start_date}_{end_date}_ep{config.epochs}_bs{config.batch_size}_lr{config.lr}"
     wandb.init(project="era5-videomae-pretraining", config=config, name=run_name)
     
     print(f"Using device: {DEVICE}")
@@ -84,19 +88,28 @@ def main(config):
         })
         
         if epoch % config.log_interval == 0:
-            print(f"--- Epoch {epoch}: Logging reconstruction GIF and saving checkpoint ---")
+            print(f"--- Epoch {epoch}: Saving checkpoint ---")
             
-            # Call the visualization function from the visualize script
+            # Save checkpoint with descriptive filename
+            checkpoint_path = f"videomae_large_{temporal_res}_{start_date}_{end_date}_epoch_{epoch}.pth"
+            model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
+            torch.save(model_to_save.state_dict(), checkpoint_path)
+            wandb.save(checkpoint_path)
+            
+        if epoch % 50 == 0:
+            print(f"--- Epoch {epoch}: Logging reconstruction GIF ---")
             log_reconstruction_gif(
                 videomae_model, vis_clip, train_mean.tolist(), train_std.tolist(), 
                 lat, lon, DEVICE, epoch
             )
-            
-            # Save checkpoint
-            checkpoint_path = f"videomae_era5_epoch_{epoch}.pth"
-            model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
-            torch.save(model_to_save.state_dict(), checkpoint_path)
-            wandb.save(checkpoint_path)
+            print(f"Reconstruction GIF logged for epoch {epoch}")
+
+    # Save final model
+    final_model_path = f"videomae_large_{temporal_res}_{start_date}_{end_date}_final.pth"
+    model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
+    torch.save(model_to_save.state_dict(), final_model_path)
+    wandb.save(final_model_path)
+    print(f"Final model saved to: {final_model_path}")
 
     print(f"\n{'='*60}")
     print("Pre-training completed!")
@@ -110,14 +123,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train a VideoMAE model on ERA5 data.")
 
     # Training config
-    parser.add_argument('--epochs', type=int, default=600, help='Total training epochs.')
-    parser.add_argument('--batch_size', type=int, default=4, help='Batch size per GPU.')
-    parser.add_argument('--num_workers', type=int, default=4, help='Number of dataloader workers.')
-    parser.add_argument('--lr', type=float, default=1.5e-4, help='Peak learning rate.')
-    parser.add_argument('--warmup_epochs', type=int, default=20, help='Epochs for learning rate warmup.')
-    parser.add_argument('--min_lr', type=float, default=1e-6, help='Minimum learning rate for cosine decay.')
-    parser.add_argument('--weight_decay', type=float, default=0.05, help='AdamW weight decay.')
-    parser.add_argument('--log_interval', type=int, default=10, help='Epoch interval for logging viz and checkpoints.')
+    parser.add_argument('--epochs', type=int, default=2000, help='Total training epochs.')
+    parser.add_argument('--batch_size', type=int, default=8, help='Batch size per GPU.')
+    parser.add_argument('--num_workers', type=int, default=8, help='Number of dataloader workers.')
+    parser.add_argument('--lr', type=float, default=1e-4, help='Peak learning rate.')
+    parser.add_argument('--warmup_epochs', type=int, default=100, help='Epochs for learning rate warmup.')
+    parser.add_argument('--min_lr', type=float, default=1e-7, help='Minimum learning rate for cosine decay.')
+    parser.add_argument('--weight_decay', type=float, default=0.1, help='AdamW weight decay.')
+    parser.add_argument('--log_interval', type=int, default=500, help='Epoch interval for logging viz and checkpoints.')
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
     
     # Model config
@@ -125,12 +138,12 @@ if __name__ == '__main__':
     parser.add_argument('--patch_size', type=int, default=16, help='Size of each patch.')
     parser.add_argument('--num_frames', type=int, default=8, help='Number of frames per clip.')
     parser.add_argument('--num_channels', type=int, default=20, help='Number of data channels (4 variables × 5 pressure levels).')
-    parser.add_argument('--embed_dim', type=int, default=768, help='Encoder embedding dimension.')
-    parser.add_argument('--encoder_depth', type=int, default=12, help='Number of encoder layers.')
-    parser.add_argument('--encoder_heads', type=int, default=12, help='Number of encoder attention heads.')
-    parser.add_argument('--decoder_embed_dim', type=int, default=384, help='Decoder embedding dimension.')
-    parser.add_argument('--decoder_depth', type=int, default=4, help='Number of decoder layers.')
-    parser.add_argument('--decoder_heads', type=int, default=6, help='Number of decoder attention heads.')
+    parser.add_argument('--embed_dim', type=int, default=1024, help='Encoder embedding dimension.')
+    parser.add_argument('--encoder_depth', type=int, default=24, help='Number of encoder layers.')
+    parser.add_argument('--encoder_heads', type=int, default=16, help='Number of encoder attention heads.')
+    parser.add_argument('--decoder_embed_dim', type=int, default=512, help='Decoder embedding dimension.')
+    parser.add_argument('--decoder_depth', type=int, default=8, help='Number of decoder layers.')
+    parser.add_argument('--decoder_heads', type=int, default=16, help='Number of decoder attention heads.')
     
     # Data parameters
     parser.add_argument('--temporal_resolution', type=str, default='6h', 

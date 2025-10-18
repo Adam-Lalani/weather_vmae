@@ -14,7 +14,6 @@ def create_videomae_model(
     decoder_embed_dim=384,
     decoder_depth=4,
     decoder_heads=6,
-    # MLP ratio
     mlp_ratio=4.0,
 ):
     """
