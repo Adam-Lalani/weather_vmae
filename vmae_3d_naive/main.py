@@ -30,6 +30,7 @@ def main(config):
         clip_length=config.num_frames,
         image_size=config.image_size,
         num_workers=config.num_workers,
+        temporal_resolution=config.temporal_resolution,
         date_start=config.date_start,
         date_end=config.date_end
     )
@@ -123,7 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_size', type=int, default=224, help='Spatial size of each frame.')
     parser.add_argument('--patch_size', type=int, default=16, help='Size of each patch.')
     parser.add_argument('--num_frames', type=int, default=8, help='Number of frames per clip.')
-    parser.add_argument('--num_channels', type=int, default=7, help='Number of data channels (5 temp levels + 2 wind components).')
+    parser.add_argument('--num_channels', type=int, default=20, help='Number of data channels (4 variables × 5 pressure levels).')
     parser.add_argument('--embed_dim', type=int, default=768, help='Encoder embedding dimension.')
     parser.add_argument('--encoder_depth', type=int, default=12, help='Number of encoder layers.')
     parser.add_argument('--encoder_heads', type=int, default=12, help='Number of encoder attention heads.')
@@ -132,6 +133,8 @@ if __name__ == '__main__':
     parser.add_argument('--decoder_heads', type=int, default=6, help='Number of decoder attention heads.')
     
     # Data parameters
+    parser.add_argument('--temporal_resolution', type=str, default='6h', 
+                       choices=['1h', '6h', '12h'], help='Temporal resolution of data.')
     parser.add_argument('--date_start', type=str, default='2021-01-01', help='Start date for data (YYYY-MM-DD).')
     parser.add_argument('--date_end', type=str, default='2021-12-31', help='End date for data (YYYY-MM-DD).')
 
