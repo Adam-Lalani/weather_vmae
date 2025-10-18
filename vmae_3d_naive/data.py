@@ -18,14 +18,13 @@ TEMPORAL_RESOLUTIONS = {
     '12h': 'gs://gcp-public-data-arco-era5/ar/1959-2022-12h-1440x721.zarr'
 }
 
-# Use 5 pressure levels for 4 variables: u, v, t, r (relative humidity)
+# Use 5 pressure levels for 4 variables: u, v, t, q (specific humidity)
 PRESSURE_LEVELS = [1000, 850, 700, 500, 300]  # 5 pressure levels in hPa
-PRESSURE_LEVEL_VARS = ['u', 'v', 't', 'r']  # u-wind, v-wind, temperature, relative humidity 
+PRESSURE_LEVEL_VARS = ['u_component_of_wind', 'v_component_of_wind', 'temperature', 'specific_humidity']  # u-wind, v-wind, temperature, specific humidity 
 
 class ERA5ClipDataset(Dataset):
     """
     Custom PyTorch Dataset for loading clips of ERA5 data.
-    Now handles 4 variables (u, v, t, r) at multiple pressure levels.
     """
     def __init__(self, data, clip_length, mean, std, pressure_levels, pressure_level_vars):
         """
@@ -110,7 +109,6 @@ def get_dataloaders(
 ):
     """
     Loads ERA5 data, calculates statistics, and creates train/validation DataLoaders.
-    Now handles 4 variables (u, v, t, r) at multiple pressure levels.
 
     Args:
         temporal_resolution (str): Temporal resolution ('1h', '6h', or '12h')
