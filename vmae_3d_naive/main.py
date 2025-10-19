@@ -24,7 +24,7 @@ def main(config):
     start_date = config.date_start.replace('-', '')
     end_date = config.date_end.replace('-', '')
     run_name = f"vmae_large_{temporal_res}_{start_date}_{end_date}_ep{config.epochs}_bs{config.batch_size}_lr{config.lr}"
-    wandb.init(project="era5-videomae-pretraining", config=config, name=run_name)
+    wandb.init(project="era5-videomae-pretraining", config=config, name=run_name, entity="adam_lalani-brown-university")
     
     print(f"Using device: {DEVICE}")
 
