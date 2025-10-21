@@ -134,12 +134,11 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
             ds = fr[:: int(1/scale) if scale < 1 else 1, :: int(1/scale) if scale < 1 else 1]
             ds_frames.append(ds)
 
-        # Create run-specific folder for outputs (outside the code directory)
         if run_name:
-            output_dir = f"../outputs/{run_name}"
+            output_dir = f"./outputs/{run_name}"
             os.makedirs(output_dir, exist_ok=True)
         else:
-            output_dir = "../outputs"
+            output_dir = "./outputs"
             os.makedirs(output_dir, exist_ok=True)
         
         mp4_path = os.path.join(output_dir, f"reconstruction_epoch_{epoch}.mp4")

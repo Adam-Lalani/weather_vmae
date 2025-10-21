@@ -91,7 +91,7 @@ def main(config):
             print(f"--- Epoch {epoch}: Saving checkpoint ---")
             
             # Save checkpoint with descriptive filename in organized folder
-            checkpoint_dir = f"../outputs/{run_name}"
+            checkpoint_dir = f"./outputs/{run_name}"
             os.makedirs(checkpoint_dir, exist_ok=True)
             checkpoint_path = os.path.join(checkpoint_dir, f"videomae_large_{temporal_res}_{start_date}_{end_date}_epoch_{epoch}.pth")
             model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
@@ -107,7 +107,7 @@ def main(config):
             print(f"Reconstruction GIF logged for epoch {epoch}")
 
     # Save final model in organized folder
-    final_model_dir = f"../outputs/{run_name}"
+    final_model_dir = f"./outputs/{run_name}"
     os.makedirs(final_model_dir, exist_ok=True)
     final_model_path = os.path.join(final_model_dir, f"videomae_large_{temporal_res}_{start_date}_{end_date}_final.pth")
     model_to_save = videomae_model.module if isinstance(videomae_model, nn.DataParallel) else videomae_model
