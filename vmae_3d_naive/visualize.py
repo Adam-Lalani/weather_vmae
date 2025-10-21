@@ -84,7 +84,8 @@ def log_reconstruction_gif(model, clip, mean, std, lat, lon, device, epoch, mask
             i, j = divmod(s, nt_w)
             t0, t1 = tg * tube, (tg + 1) * tube
 
-            masked[t0:t1, :, i*ps:(i+1)*ps, j*ps:(j+1)*ps] *= 0.3
+            # Make masking more apparent by making patches darker
+            masked[t0:t1, :, i*ps:(i+1)*ps, j*ps:(j+1)*ps] *= 0.05
 
             patch = pred_flat[0, m].view(tube, ps, ps, C).permute(0, 3, 1, 2).contiguous()
             patch = patch * std_t + mean_t
