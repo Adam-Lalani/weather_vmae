@@ -11,11 +11,12 @@ import cartopy.feature as cfeature
 # --- Constants ---
 CANADA_BOUNDS = [-141.0, 41.7, -52.6, 83.1] # [lon_min, lat_min, lon_max, lat_max]
 
-# Temporal resolution options
+# Temporal resolution options - using single high-resolution 1h dataset for all resolutions
+# This ensures consistent 0.25° spatial resolution and 37 pressure levels across all temporal frequencies
 TEMPORAL_RESOLUTIONS = {
-    '1h': 'gs://gcp-public-data-arco-era5/ar/1959-2022-1h-1440x721.zarr',
-    '6h': 'gs://gcp-public-data-arco-era5/ar/1959-2022-6h-1440x721.zarr', 
-    '12h': 'gs://gcp-public-data-arco-era5/ar/1959-2022-12h-1440x721.zarr'
+    '1h': 'gs://gcp-public-data-arco-era5/ar/full_37-1h-0p25deg-chunk-1.zarr-v3',  # Use as-is
+    '6h': 'gs://gcp-public-data-arco-era5/ar/full_37-1h-0p25deg-chunk-1.zarr-v3',  # Subsample every 6th point
+    '12h': 'gs://gcp-public-data-arco-era5/ar/full_37-1h-0p25deg-chunk-1.zarr-v3'  # Subsample every 12th point
 }
 
 # Use 5 pressure levels for 4 variables: u, v, t, q (specific humidity)
@@ -133,6 +134,13 @@ def get_dataloaders(
     data_vars = []
     for var in PRESSURE_LEVEL_VARS:
         var_data = ds[var].sel(level=PRESSURE_LEVELS, time=slice(date_start, date_end))
+        
+        # Handle different temporal resolutions by subsampling the 1h dataset
+        if temporal_resolution == '6h':
+            var_data = var_data.isel(time=slice(0, None, 6))
+        elif temporal_resolution == '12h':
+            var_data = var_data.isel(time=slice(0, None, 12))
+            
         data_vars.append(var_data)
     
     # Combine the datasets
