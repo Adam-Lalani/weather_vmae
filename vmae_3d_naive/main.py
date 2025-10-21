@@ -98,7 +98,7 @@ def main(config):
             torch.save(model_to_save.state_dict(), checkpoint_path)
             wandb.save(checkpoint_path)
             
-        if epoch % 50 == 0:
+        if epoch % config.save_model_interval == 0:
             print(f"--- Epoch {epoch}: Logging reconstruction GIF ---")
             log_reconstruction_gif(
                 videomae_model, vis_clip, train_mean.tolist(), train_std.tolist(), 
@@ -135,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_lr', type=float, default=1e-7, help='Minimum learning rate for cosine decay.')
     parser.add_argument('--weight_decay', type=float, default=0.1, help='AdamW weight decay.')
     parser.add_argument('--log_interval', type=int, default=500, help='Epoch interval for logging viz and checkpoints.')
+    parser.add_argument('--save_model_interval', type=int, default=50, help='Epoch interval for saving model checkpoints.')
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
     
     # Model config
